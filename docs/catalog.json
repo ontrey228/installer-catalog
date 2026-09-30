@@ -1,6 +1,41 @@
 {
   "schemaVersion": 2,
-  "revision": 1,
-  "updatedAt": "2026-09-30T00:00:00Z",
-  "items": []
+  "revision": 3,
+  "updatedAt": "2026-09-30T19:15:50Z",
+  "items": [
+    {
+      "id": "veloryt-20-21-6",
+      "name": "Veloryt",
+      "summary": "Версия Veloryt для iOS 15 и новее.",
+      "version": "20.21.6",
+      "category": "Видео",
+      "format": "ipa",
+      "downloadURL": "https://github.com/ontrey228/installer-catalog/releases/download/veloryt-builds-1/Veloryt_20.21.6.ipa",
+      "sha256": "2f11fc82b4cec30e3c41e9263794c3ded9c9387b14f6c5d17106fedfaf4d233b",
+      "releaseNotes": [
+        "Добавлена версия 20.21.6 в каталог."
+      ],
+      "updatedAt": "2026-09-30T19:15:42Z",
+      "symbol": "app.fill",
+      "bundleID": "com.google.ios.youtube",
+      "minimumIOSVersion": "15.0"
+    },
+    {
+      "id": "veloryt-21-38-3",
+      "name": "Veloryt",
+      "summary": "Версия Veloryt для iOS 17 и новее.",
+      "version": "21.38.3",
+      "category": "Видео",
+      "format": "ipa",
+      "downloadURL": "https://github.com/ontrey228/installer-catalog/releases/download/veloryt-builds-1/Veloryt_21.38.3.ipa",
+      "sha256": "a615686aa105d69c17116103b1d3ed1170665f5aae34a175fd2cbb9e66ed6b6b",
+      "releaseNotes": [
+        "Добавлена версия 21.38.3 в каталог."
+      ],
+      "updatedAt": "2026-09-30T19:15:50Z",
+      "symbol": "app.fill",
+      "bundleID": "com.google.ios.youtube",
+      "minimumIOSVersion": "17.0"
+    }
+  ]
 }
