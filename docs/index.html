@@ -3,23 +3,95 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
   <title>Installer Catalog</title>
   <style>
-    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: radial-gradient(circle at 15% 10%, #64284d 0, #130d1d 43%, #090712 100%); color: #fff; }
-    main { width: min(560px, calc(100% - 44px)); padding: 30px; border: 1px solid #ffffff30; border-radius: 24px; background: #ffffff0d; box-shadow: 0 24px 90px #0008; }
-    h1 { margin: 0 0 12px; font-size: 2rem; }
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #fff; background: #090712; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; padding: 52px 20px; background: radial-gradient(circle at 15% 10%, #64284d 0, #130d1d 43%, #090712 100%); }
+    main { width: min(820px, 100%); margin: auto; }
+    header, article { border: 1px solid #ffffff30; border-radius: 24px; background: #ffffff0d; box-shadow: 0 24px 90px #0005; backdrop-filter: blur(18px); }
+    header { padding: clamp(24px, 5vw, 38px); margin-bottom: 18px; }
+    h1 { margin: 0 0 10px; font-size: clamp(2rem, 6vw, 3rem); }
+    h2 { margin: 0; font-size: 1.25rem; }
     p { color: #d9d0df; line-height: 1.55; }
     a { color: #ff73bd; }
-    code { overflow-wrap: anywhere; }
+    .eyebrow { margin: 0 0 12px; color: #ff91c6; font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+    article { padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+    article p { margin: 0; }
+    .version { color: #f7c66b; font-size: .9rem; font-weight: 700; }
+    .requirement { align-self: flex-start; padding: 7px 11px; border-radius: 999px; background: #ffffff16; color: #f7c66b; font-size: .82rem; font-weight: 700; }
+    .requirement.unsupported { background: #ff50652b; color: #ff8795; }
+    .download { align-self: flex-start; margin-top: auto; padding: 10px 16px; border-radius: 12px; background: #ec4f9b; color: #fff; font-weight: 700; text-decoration: none; }
+    .download.disabled { background: #ffffff1b; color: #bcb4c5; cursor: not-allowed; }
+    .footer { margin-top: 22px; font-size: .85rem; }
   </style>
 </head>
 <body>
   <main>
-    <h1>Installer Catalog</h1>
-    <p>Подписанный каталог приложений и библиотек для Installer.</p>
-    <p>В актуальных сборках источник уже настроен: <a href="catalog.json"><code>catalog.json</code></a> и <a href="public-key.txt">публичный ключ Ed25519</a>. В настройках каталога можно подключить другой источник.</p>
-    <p>Каталог проверяется приложением перед показом, а загружаемые файлы сверяются по SHA-256.</p>
+    <header>
+      <p class="eyebrow">Подписанный каталог</p>
+      <h1>Installer Catalog</h1>
+      <p>Приложения и библиотеки для Installer. Требования к iOS показаны для каждой версии. На несовместимом iPhone загрузка недоступна.</p>
+      <p class="footer">Installer проверяет <a href="catalog.json">каталог</a> подписью Ed25519, а файлы — по SHA-256. <a href="public-key.txt">Публичный ключ</a></p>
+    </header>
+    <section id="items" class="grid" aria-label="Приложения"><p>Загружаем каталог…</p></section>
   </main>
+  <script>
+    const container = document.getElementById('items');
+    const deviceMatch = /(?:iPhone|iPad|iPod).*?OS (\d+)(?:_(\d+))?/i.exec(navigator.userAgent);
+    const deviceIOS = deviceMatch ? [Number(deviceMatch[1]), Number(deviceMatch[2] || 0)] : null;
+
+    function supported(minimum) {
+      if (!deviceIOS || !minimum) return true;
+      const parts = minimum.split('.').map(Number);
+      return deviceIOS[0] > parts[0] ||
+        (deviceIOS[0] === parts[0] && deviceIOS[1] >= (parts[1] || 0));
+    }
+
+    function showItem(item) {
+      const card = document.createElement('article');
+      const title = document.createElement('h2');
+      title.textContent = item.name;
+      const version = document.createElement('span');
+      version.className = 'version';
+      version.textContent = `${item.format.toUpperCase()} · ${item.version}`;
+      const summary = document.createElement('p');
+      summary.textContent = item.summary;
+      const requirement = document.createElement('span');
+      const compatible = supported(item.minimumIOSVersion);
+      requirement.className = `requirement${compatible ? '' : ' unsupported'}`;
+      requirement.textContent = compatible
+        ? `Требуется iOS ${item.minimumIOSVersion || '14.0'}+`
+        : `Не поддерживается · нужна iOS ${item.minimumIOSVersion}+`;
+      card.append(title, version, summary, requirement);
+      if (compatible && /^https:\/\//i.test(item.downloadURL || '')) {
+        const download = document.createElement('a');
+        download.className = 'download';
+        download.href = item.downloadURL;
+        download.textContent = 'Скачать';
+        card.append(download);
+      } else {
+        const disabled = document.createElement('span');
+        disabled.className = 'download disabled';
+        disabled.textContent = compatible ? 'Файл недоступен' : 'Недоступно на этой iOS';
+        card.append(disabled);
+      }
+      container.append(card);
+    }
+
+    fetch('catalog.json', { cache: 'no-store' })
+      .then(response => { if (!response.ok) throw new Error('catalog'); return response.json(); })
+      .then(catalog => {
+        container.replaceChildren();
+        if (!Array.isArray(catalog.items) || !catalog.items.length) {
+          container.textContent = 'Каталог пока пуст.';
+          return;
+        }
+        catalog.items.forEach(showItem);
+      })
+      .catch(() => { container.textContent = 'Не удалось загрузить каталог. Попробуйте обновить страницу.'; });
+  </script>
 </body>
 </html>
